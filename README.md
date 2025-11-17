@@ -68,3 +68,89 @@ macOS向けのメニューバーアプリケーション。集中時間を管理
 - macOS 11.0以上
 - Xcode 13.0以上
 
+## Gitの運用方法
+
+このプロジェクトのGitリポジトリの基本的な使い方を説明します。
+
+### 基本的な流れ
+
+1. **変更を確認する**
+   ```bash
+   git status
+   ```
+   現在の変更状況を確認できます。
+
+2. **変更をステージングする**
+   ```bash
+   git add .
+   ```
+   すべての変更をステージングエリアに追加します。
+   
+   特定のファイルだけ追加する場合：
+   ```bash
+   git add ファイル名
+   ```
+
+3. **コミットする**
+   ```bash
+   git commit -m "変更内容の説明"
+   ```
+   例：`git commit -m "タイマー機能を追加"`
+
+4. **リモートにプッシュする**
+   ```bash
+   git push origin main
+   ```
+   変更をGitHubにアップロードします。
+
+### よく使うコマンド
+
+- **変更履歴を確認**
+  ```bash
+  git log
+  ```
+
+- **最新の変更を取得**
+  ```bash
+  git pull origin main
+  ```
+
+- **変更を取り消す（まだコミットしていない場合）**
+  ```bash
+  git restore ファイル名
+  ```
+
+- **直前のコミットを取り消す（まだプッシュしていない場合）**
+  ```bash
+  git reset --soft HEAD~1
+  ```
+
+### 初回設定（GitHubにプッシュする場合）
+
+1. **GitHubでリポジトリを作成**
+   - GitHubにログインして新しいリポジトリを作成
+
+2. **認証設定**
+   - Personal Access Token（PAT）を使用する方法：
+     - GitHubのSettings → Developer settings → Personal access tokens → Tokens (classic)
+     - 新しいトークンを生成（`repo`権限が必要）
+     - プッシュ時にユーザー名とトークンを入力
+   
+   - SSH鍵を使用する方法：
+     ```bash
+     ssh-keygen -t ed25519 -C "your_email@example.com"
+     ```
+     生成された公開鍵をGitHubに登録
+
+3. **リモートリポジトリを設定**
+   ```bash
+   git remote add origin https://github.com/ユーザー名/リポジトリ名.git
+   ```
+
+### 注意事項
+
+- コミットメッセージは変更内容がわかるように書く
+- 定期的に`git pull`して最新の変更を取得する
+- 大きな変更は小さく分けてコミットする
+- `.env`ファイルなど機密情報はコミットしない（`.gitignore`に追加）
+
