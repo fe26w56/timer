@@ -22,7 +22,7 @@ class StatusBarManager: ObservableObject {
         print("StatusBarManager: Starting setup...")
         self.timerManager = timerManager
         
-        // メニューバーアイテムを作成
+        // メニューバーアイテムを作成（固定幅で作成して幅の変動を防ぐ）
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         
         guard let button = statusItem?.button else {
@@ -31,6 +31,16 @@ class StatusBarManager: ObservableObject {
         }
         
         print("StatusBarManager: Status item created")
+        
+        // 等幅フォントを使用して数字の幅を固定
+        if let monospacedFont = NSFont.monospacedSystemFont(ofSize: 13, weight: .regular) {
+            button.font = monospacedFont
+        } else {
+            button.font = NSFont.systemFont(ofSize: 13)
+        }
+        
+        // 最小幅を設定して幅の変動を防ぐ
+        button.frame.size.width = 80
         
         // 初期アイコンを設定
         updateStatusBar()
@@ -108,6 +118,50 @@ class StatusBarManager: ObservableObject {
         updateStatusBar()
     }
     
+    func showPomodoroWorkFinishedAlert(isLongBreak: Bool) {
+        guard let button = statusItem?.button else { return }
+        
+        // ポップオーバーを閉じる
+        popover?.performClose(nil)
+        
+        // アラートウィンドウを表示
+        let alert = NSAlert()
+        alert.messageText = isLongBreak ? "長い休憩の時間です" : "短い休憩の時間です"
+        alert.informativeText = isLongBreak ? 
+            "お疲れ様でした！長い休憩を取ってください。" :
+            "お疲れ様でした！短い休憩を取ってください。"
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "休憩を開始")
+        
+        // メインウィンドウを前面に
+        NSApp.activate(ignoringOtherApps: true)
+        
+        alert.runModal()
+        
+        updateStatusBar()
+    }
+    
+    func showPomodoroBreakFinishedAlert() {
+        guard let button = statusItem?.button else { return }
+        
+        // ポップオーバーを閉じる
+        popover?.performClose(nil)
+        
+        // アラートウィンドウを表示
+        let alert = NSAlert()
+        alert.messageText = "休憩が終了しました"
+        alert.informativeText = "作業を再開しましょう！"
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "作業を開始")
+        
+        // メインウィンドウを前面に
+        NSApp.activate(ignoringOtherApps: true)
+        
+        alert.runModal()
+        
+        updateStatusBar()
+    }
+    
     private func updateStatusBar() {
         guard let button = statusItem?.button,
               let timerManager = timerManager else {
@@ -121,11 +175,23 @@ class StatusBarManager: ObservableObject {
             button.image = nil
             
         case .running:
-            button.title = timerManager.formattedTime
+            if timerManager.isPomodoroMode {
+                button.title = "🍅 \(timerManager.formattedTime)"
+            } else {
+                button.title = timerManager.formattedTime
+            }
             button.image = nil
             
         case .paused:
             button.title = "⏸ \(timerManager.formattedTime)"
+            button.image = nil
+            
+        case .shortBreak:
+            button.title = "☕ \(timerManager.formattedTime)"
+            button.image = nil
+            
+        case .longBreak:
+            button.title = "🌴 \(timerManager.formattedTime)"
             button.image = nil
         }
         

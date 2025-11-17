@@ -15,9 +15,6 @@ struct TimerApp: App {
         Settings {
             EmptyView()
         }
-        .onAppear {
-            print("TimerApp: Scene appeared")
-        }
     }
 }
 
@@ -56,6 +53,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         ) { _ in
             StatusBarManager.shared.showCompletionAlert()
         }
+        
+        // ポモドーロ作業終了通知を監視
+        NotificationCenter.default.addObserver(
+            forName: .pomodoroWorkFinished,
+            object: nil,
+            queue: .main
+        ) { notification in
+            if let userInfo = notification.userInfo,
+               let isLongBreak = userInfo["isLongBreak"] as? Bool {
+                StatusBarManager.shared.showPomodoroWorkFinishedAlert(isLongBreak: isLongBreak)
+            }
+        }
+        
+        // ポモドーロ休憩終了通知を監視
+        NotificationCenter.default.addObserver(
+            forName: .pomodoroBreakFinished,
+            object: nil,
+            queue: .main
+        ) { _ in
+            StatusBarManager.shared.showPomodoroBreakFinishedAlert()
+        }
+        
         print("AppDelegate: initializeStatusBar completed")
     }
     
