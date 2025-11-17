@@ -33,11 +33,7 @@ class StatusBarManager: ObservableObject {
         print("StatusBarManager: Status item created")
         
         // 等幅フォントを使用して数字の幅を固定
-        if let monospacedFont = NSFont.monospacedSystemFont(ofSize: 13, weight: .regular) {
-            button.font = monospacedFont
-        } else {
-            button.font = NSFont.systemFont(ofSize: 13)
-        }
+        button.font = NSFont.monospacedSystemFont(ofSize: 13, weight: .regular)
         
         // 最小幅を設定して幅の変動を防ぐ
         button.frame.size.width = 80
@@ -45,9 +41,15 @@ class StatusBarManager: ObservableObject {
         // 初期アイコンを設定
         updateStatusBar()
         
+        // 右クリック（Control+クリック）でメニューを表示するために設定
+        button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+        
         // クリックイベントを設定
-        button.action = #selector(togglePopover)
+        button.action = #selector(handleButtonClick(_:))
         button.target = self
+        
+        // 右クリック用のメニューを作成
+        createContextMenu()
         
         // ポップオーバーを作成
         popover = NSPopover()
@@ -71,6 +73,18 @@ class StatusBarManager: ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     
+    @objc func handleButtonClick(_ sender: NSStatusBarButton) {
+        let event = NSApp.currentEvent!
+        
+        if event.type == .rightMouseUp {
+            // 右クリックの場合はメニューを表示
+            showContextMenu()
+        } else {
+            // 左クリックの場合はポップオーバーを表示
+            togglePopover()
+        }
+    }
+    
     @objc func togglePopover() {
         guard let button = statusItem?.button,
               let popover = popover else { return }
@@ -86,6 +100,31 @@ class StatusBarManager: ObservableObject {
                 hostingController.rootView = PopupView()
             }
         }
+    }
+    
+    private var contextMenu: NSMenu?
+    
+    private func createContextMenu() {
+        let menu = NSMenu()
+        
+        let quitItem = NSMenuItem(title: "終了", action: #selector(quitApplication), keyEquivalent: "q")
+        quitItem.target = self
+        menu.addItem(quitItem)
+        
+        contextMenu = menu
+        // statusItem.menuは設定しない（左クリックでメニューが表示されないようにするため）
+    }
+    
+    private func showContextMenu() {
+        guard let button = statusItem?.button,
+              let menu = contextMenu else { return }
+        
+        // メニューを表示
+        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: button.bounds.height), in: button)
+    }
+    
+    @objc private func quitApplication() {
+        NSApplication.shared.terminate(nil)
     }
     
     func showCompletionAlert() {
