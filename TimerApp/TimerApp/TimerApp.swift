@@ -15,9 +15,6 @@ struct TimerApp: App {
         Settings {
             EmptyView()
         }
-        .onAppear {
-            print("TimerApp: Scene appeared")
-        }
     }
 }
 
